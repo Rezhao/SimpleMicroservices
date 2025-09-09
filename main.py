@@ -15,7 +15,7 @@ from models.person import PersonCreate, PersonRead, PersonUpdate
 from models.address import AddressCreate, AddressRead, AddressUpdate
 from models.health import Health
 from models.food import FoodRead, FoodCreate, FoodUpdate, FoodDelete
-from models.pet import PetCreate, PetRead, PetUpdate
+from models.pet import PetCreate, PetRead, PetUpdate, PetDelete
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
 
@@ -268,6 +268,15 @@ def update_pet(pet_id: UUID, update: PetUpdate):
     stored.update(update.model_dump(exclude_unset=True))
     pets[pet_id] = PetRead(**stored)
     return pets[pet_id]
+
+# delete pet
+@app.delete("/pets/{pet_id}", response_model=PetDelete, status_code=200)
+def delete_pet(pet_id: UUID):
+    if pet_id not in pets:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    pet = pets[pet_id]
+    del pets[pet_id]
+    return PetDelete(id=pet.id, species=pet.species, name=pet.name, age=pet.age)
 
 # -----------------------------------------------------------------------------
 # Root

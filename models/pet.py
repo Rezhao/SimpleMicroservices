@@ -10,7 +10,7 @@ class PetBase(BaseModel):
         ..., description="Species of the pet.", json_schema_extra={"example": "Dog"}
     )
     name: str = Field(..., description="Name of the pet.", json_schema_extra={"example": "Mochi"})
-    age: Optional[int] = Field(None, description="Age of pet in years.", json_schema_extra={"example": 3})
+    age: int = Field(..., description="Age of pet in years.", json_schema_extra={"example": 3})
 
     model_config = {
         "json_schema_extra": {
@@ -52,6 +52,28 @@ class PetUpdate(BaseModel):
                 {"name": "Mochi", "age": 3},
                 {"species": "Dog"},
                 {"age": 3},
+            ]
+        }
+    }
+
+class PetDelete(BaseModel):
+    """Delete a Pet by ID"""
+    id: UUID = Field(..., description="ID of the pet to delete.", json_schema_extra={"example": "99999999-9999-4999-8999-999999999999"})
+    species: Literal["Dog", "Cat", "Bird", "Fish"] = Field(
+        ..., description="Species of the pet.", json_schema_extra={"example": "Dog"}
+    )
+    name: str = Field(..., description="Name of the pet.", json_schema_extra={"example": "Mochi"})
+    age: int = Field(..., description="Age of pet in years.", json_schema_extra={"example": 3})
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "id": "99999999-9999-4999-8999-999999999999",
+                    "species": "Dog",
+                    "name": "Mochi",
+                    "age": 3,
+                }
             ]
         }
     }
