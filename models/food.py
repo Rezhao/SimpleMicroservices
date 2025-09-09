@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field
 from typing import Literal, Optional
-from datetime import date, datetime
+from datetime import datetime
 
-# food model
+# food model where it defines the food item with nameID as the primary key, and is given attributes
+# where you can define their categories and calories per serving
 class FoodBase(BaseModel):
     category: Literal["Fruits", "Vegetables", "Grains", "Protein", "Dairy"] = Field(
         ..., #required

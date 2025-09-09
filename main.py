@@ -15,6 +15,7 @@ from models.person import PersonCreate, PersonRead, PersonUpdate
 from models.address import AddressCreate, AddressRead, AddressUpdate
 from models.health import Health
 from models.food import FoodRead, FoodCreate, FoodUpdate, FoodDelete
+from models.pet import PetCreate, PetRead, PetUpdate
 
 port = int(os.environ.get("FASTAPIPORT", 8000))
 
@@ -24,6 +25,7 @@ port = int(os.environ.get("FASTAPIPORT", 8000))
 persons: Dict[UUID, PersonRead] = {}
 addresses: Dict[UUID, AddressRead] = {}
 foods: Dict[str, FoodRead] = {}
+pets: Dict[UUID, PetRead] = {}
 
 app = FastAPI(
     title="Person/Address API",
@@ -219,6 +221,53 @@ def delete_food(food_id: str):
     food = foods[food_id]
     del foods[food_id]
     return FoodDelete(nameID=food.nameID, category=food.category, calories=food.calories)
+
+# -----------------------------------------------------------------------------
+# Pet endpoints
+# -----------------------------------------------------------------------------
+# create pet
+@app.post("/pets", response_model=PetRead, status_code=201)
+def create_pet(pet: PetCreate):
+    pet_read = PetRead(**pet.model_dump())
+    pets[pet_read.id] = pet_read
+    return pet_read
+
+# get pet by id
+@app.get("/pets/{pet_id}", response_model=PetRead)
+def get_pet(pet_id: UUID):
+    if pet_id not in pets:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    return pets[pet_id]
+
+# get list of all pets or filter by species/name/age
+@app.get("/pets", response_model=List[PetRead])
+def list_pets(
+    species: Optional[str] = Query(None, description="Filter by pet species"),
+    name: Optional[str] = Query(None, description="Filter by pet name"),
+    min_age: Optional[int] = Query(None, description="Minimum age of pet"),
+    max_age: Optional[int] = Query(None, description="Maximum age of pet"),
+):
+    results = list(pets.values())
+
+    if species is not None:
+        results = [f for f in results if f.species == species]
+    if name is not None:
+        results = [f for f in results if f.name == name]
+    if min_age is not None:
+        results = [f for f in results if f.age is not None and f.age >= min_age]
+    if max_age is not None:
+        results = [f for f in results if f.age is not None and f.age <= max_age]
+    return results
+
+# update pet
+@app.patch("/pets/{pet_id}", response_model=PetRead)
+def update_pet(pet_id: UUID, update: PetUpdate):
+    if pet_id not in pets:
+        raise HTTPException(status_code=404, detail="Pet not found")
+    stored = pets[pet_id].model_dump()
+    stored.update(update.model_dump(exclude_unset=True))
+    pets[pet_id] = PetRead(**stored)
+    return pets[pet_id]
 
 # -----------------------------------------------------------------------------
 # Root
